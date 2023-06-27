@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 // const jwt = require("jsonwebtoken");
@@ -77,7 +77,11 @@ async function run() {
 
     // //get product by Categories
     app.get("/allProduct/:category", async (req, res) => {
+      console.log("/allProduct/:category");
       const category = req.params.category;
+      console.log("/allProduct/:category : "+category);
+      const id = req.params.id;
+      console.log("/allProduct/:id : "+id);
       const query = { category };
       const Product = await userCollectionAllProduct.find(query).toArray();
       res.send(Product);
@@ -91,9 +95,11 @@ async function run() {
     //   res.send(bookingData);
     // });
 
-    app.get("/allProduct/:id", async (req, res) => {
+    app.get("/productDetails/:id", async (req, res) => {
+      console.log("/allProduct/:id");
       const id = req.params.id;
-      const query = { _id: ObjectId(id) };
+      console.log("/allProduct/:id : "+id);
+      const query = { _id:new ObjectId(id) };
       console.log(query);
       const detail = await userCollectionAllProduct.findOne(query);
       console.log(detail);
