@@ -1,9 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-// const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion } = require("mongodb");
+require("dotenv").config();
+
 // const jwt = require("jsonwebtoken");
 
-// require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -12,13 +13,16 @@ const port = process.env.PORT || 4000;
 app.use(cors());
 app.use(express.json());
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.nzbu8kl.mongodb.net/?retryWrites=true&w=majority`;
+
+// old version mongoDb connection
 // const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@ac-leabwa6-shard-00-00.nzbu8kl.mongodb.net:27017,ac-leabwa6-shard-00-01.nzbu8kl.mongodb.net:27017,ac-leabwa6-shard-00-02.nzbu8kl.mongodb.net:27017/?ssl=true&replicaSet=atlas-8a48sm-shard-0&authSource=admin&retryWrites=true&w=majority`;
 
-// const client = new MongoClient(uri, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-//   serverApi: ServerApiVersion.v1,
-// });
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverApi: ServerApiVersion.v1,
+});
 
 // //jwt token function.
 
@@ -37,314 +41,336 @@ app.use(express.json());
 //   });
 // }
 
-// async function run() {
-//   try {
-//     const userCollection = client.db("Phone").collection("Product");
-//     const bookingsCollection = client.db("Phone").collection("bookings");
-//     const CreateUserCollection = client.db("Phone").collection("users");
-//     const paymentsCollection = client.db("Phone").collection("payments");
+async function run() {
+  try {
+    const userCollectionAllProduct = client
+      .db("Pet-Shop")
+      .collection("allProduct");
 
-//     //jwt token create
-//     app.get("/jwt", async (req, res) => {
-//       const email = req.query.email;
-//       const query = { email: email };
-//       const user = await CreateUserCollection.findOne(query);
-//       if (user) {
-//         const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
-//           expiresIn: "10d",
-//         });
-//         return res.send({ token: token });
-//       }
+    // const bookingsCollection = client.db("Phone").collection("bookings");
+    // const CreateUserCollection = client.db("Phone").collection("users");
+    // const paymentsCollection = client.db("Phone").collection("payments");
 
-//       res.status(403).send({ token: " " });
-//     });
-//     //This is AllProduct section
-//     //get all Product
+    //jwt token create
+    // app.get("/jwt", async (req, res) => {
+    //   const email = req.query.email;
+    //   const query = { email: email };
+    //   const user = await CreateUserCollection.findOne(query);
+    //   if (user) {
+    //     const token = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET, {
+    //       expiresIn: "10d",
+    //     });
+    //     return res.send({ token: token });
+    //   }
 
-//     // app.get("/alProduct/:email", async (req, res) => {
-//     //   const email = req.params.email;
-//     //   const query = { email };
-//     //   const user = await CreateUserCollection.findOne(query);
-//     //   res.send({ iaAdmin: user?.role === "admin" });
-//     // });
+    //   res.status(403).send({ token: " " });
+    // });
+    //This is AllProduct section
+    //get all Product
 
-//     app.get("/AllProduct", async (req, res) => {
-//       const query = {};
-//       const cursors = userCollection.find(query);
-//       const user = await cursors.toArray();
-//       res.send(user);
-//     });
-//     //post data into AllProduct by add a Product
-//     app.post("/AllProduct", async (req, res) => {
-//       const product = req.body;
-//       const result = await userCollection.insertOne(product);
-//       res.send(result);
-//     });
+    // app.get("/alProduct/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email };
+    //   const user = await CreateUserCollection.findOne(query);
+    //   res.send({ iaAdmin: user?.role === "admin" });
+    // });
 
-//     //AllProduct Advertised update by seller
-//     app.put("/AllProduct/:id", verifyJwt, async (req, res) => {
-//       const id = req.params.id;
-//       const filter = { _id: ObjectId(id) };
-//       const options = { upsert: true };
-//       const updatedUser = {
-//         $set: {
-//           productInfo: "Advertised",
-//         },
-//       };
-//       const result = await userCollection.updateOne(
-//         filter,
-//         updatedUser,
-//         options
-//       );
-//       res.send(result);
-//     });
+    // //get product by Categories
+    app.get("/allProduct/:category", async (req, res) => {
+      const category = req.params.category;
+      const query = { category };
+      const Product = await userCollectionAllProduct.find(query).toArray();
+      res.send(Product);
+    });
 
-//     //Report items by buyer in AllProduct
-//     app.put("/reportProduct/:id", verifyJwt, async (req, res) => {
-//       const id = req.params.id;
-//       const filter = { _id: ObjectId(id) };
-//       const options = { upsert: true };
-//       const updatedUser = {
-//         $set: {
-//           report: "Report Item",
-//         },
-//       };
-//       const result = await userCollection.updateOne(
-//         filter,
-//         updatedUser,
-//         options
-//       );
-//       res.send(result);
-//     });
+    // //get booking data to id
+    // app.get("/bookingData/:id", async (req, res) => {
+    // const id = req.params.id;
+    // const query = { _id: ObjectId(id) };
+    //   const bookingData = await bookingsCollection.findOne(query);
+    //   res.send(bookingData);
+    // });
 
-//     //Report Item all get show admin route   verifyJwt,
-//     app.get("/reportItems/:report", async (req, res) => {
-//       const report = req.params.report;
-//       const query = { report };
-//       const Product = await userCollection
-//         .find(query)
-//         .toArray(function (err, result) {
-//           if (err) throw err;
-//           res.send(result);
-//         });
-//     });
+    app.get("/allProduct/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      console.log(query);
+      const detail = await userCollectionAllProduct.findOne(query);
+      console.log(detail);
+      res.send(detail);
+    });
 
-//     //Seller delete data from myProduct verifyJwt,
-//     app.delete("/AllProduct/:id", verifyJwt, async (req, res) => {
-//       const id = req.params.id;
-//       const query = { _id: ObjectId(id) };
-//       const result = await userCollection.deleteOne(query);
-//       res.send(result);
-//     });
-//     //get MyProduct data by email
-//     app.get("/myProduct", verifyJwt, async (req, res) => {
-//       const email = req.query.email;
-//       const decodedEmail = req.decoded.email;
-//       if (email !== decodedEmail) {
-//         return res.status(403).send({ message: "Forbidden Assess" });
-//       }
-//       const query = { email: email };
-//       const myProduct = await userCollection.find(query).toArray();
-//       res.send(myProduct);
-//     });
+    //post data into AllProduct by add a Product
+    // app.post("/AllProduct", async (req, res) => {
+    //   const product = req.body;
+    //   const result = await userCollection.insertOne(product);
+    //   res.send(result);
+    // });
 
-//     //get product by Categories
-//     app.get("/AllProduct/:Brand", async (req, res) => {
-//       const Brand = req.params.Brand;
-//       const query = { Brand };
-//       const Product = await userCollection
-//         .find(query)
-//         .toArray(function (err, result) {
-//           if (err) throw err;
-//           res.send(result);
-//         });
-//     });
-//     //get product by  productInfo : Advertised
-//     app.get("/aProduct/:productInfo", async (req, res) => {
-//       const productInfo = req.params.productInfo;
-//       const query = { productInfo };
-//       const Product = await userCollection
-//         .find(query)
-//         .toArray(function (err, result) {
-//           if (err) throw err;
-//           res.send(result);
-//         });
-//     });
-//     //This is ProductBooking section
-//     //booking data save to mongoDB
-//     app.post("/ProductBooking", async (req, res) => {
-//       const booking = req.body;
-//       const result = await bookingsCollection.insertOne(booking);
-//       res.send(result);
-//     });
+    // //AllProduct Advertised update by seller
+    // app.put("/AllProduct/:id", verifyJwt, async (req, res) => {
+    //   const id = req.params.id;
+    //   const filter = { _id: ObjectId(id) };
+    //   const options = { upsert: true };
+    //   const updatedUser = {
+    //     $set: {
+    //       productInfo: "Advertised",
+    //     },
+    //   };
+    //   const result = await userCollection.updateOne(
+    //     filter,
+    //     updatedUser,
+    //     options
+    //   );
+    //   res.send(result);
+    // });
 
-//     //booking data get to mongoDB
-//     app.get("/ProductBooking", verifyJwt, async (req, res) => {
-//       const email = req.query.email;
-//       const decodedEmail = req.decoded.email;
-//       if (email !== decodedEmail) {
-//         return res.status(403).send({ message: "Forbidden Assess" });
-//       }
-//       const query = { email: email };
-//       const booking = await bookingsCollection.find(query).toArray();
-//       res.send(booking);
-//     });
+    // //Report items by buyer in AllProduct
+    // app.put("/reportProduct/:id", verifyJwt, async (req, res) => {
+    //   const id = req.params.id;
+    //   const filter = { _id: ObjectId(id) };
+    //   const options = { upsert: true };
+    //   const updatedUser = {
+    //     $set: {
+    //       report: "Report Item",
+    //     },
+    //   };
+    //   const result = await userCollection.updateOne(
+    //     filter,
+    //     updatedUser,
+    //     options
+    //   );
+    //   res.send(result);
+    // });
 
-//     //get booking data to id
-//     app.get("/bookingData/:id", async (req, res) => {
-//       const id = req.params.id;
-//       const query = { _id: ObjectId(id) };
-//       const bookingData = await bookingsCollection.findOne(query);
-//       res.send(bookingData);
-//     });
+    // //Report Item all get show admin route   verifyJwt,
+    // app.get("/reportItems/:report", async (req, res) => {
+    //   const report = req.params.report;
+    //   const query = { report };
+    //   const Product = await userCollection
+    //     .find(query)
+    //     .toArray(function (err, result) {
+    //       if (err) throw err;
+    //       res.send(result);
+    //     });
+    // });
 
-//     //Payment booking product
+    // //Seller delete data from myProduct verifyJwt,
+    // app.delete("/AllProduct/:id", verifyJwt, async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: ObjectId(id) };
+    //   const result = await userCollection.deleteOne(query);
+    //   res.send(result);
+    // });
+    // //get MyProduct data by email
+    // app.get("/myProduct", verifyJwt, async (req, res) => {
+    //   const email = req.query.email;
+    //   const decodedEmail = req.decoded.email;
+    //   if (email !== decodedEmail) {
+    //     return res.status(403).send({ message: "Forbidden Assess" });
+    //   }
+    //   const query = { email: email };
+    //   const myProduct = await userCollection.find(query).toArray();
+    //   res.send(myProduct);
+    // });
 
-//     app.post("/create-payment-intent", verifyJwt, async (req, res) => {
-//       const booking = req.body;
-//       const price = booking.resale_price;
-//       const amount = price * 100;
+    // //get product by Categories
+    // app.get("/AllProduct/:Brand", async (req, res) => {
+    //   const Brand = req.params.Brand;
+    //   const query = { Brand };
+    //   const Product = await userCollection
+    //     .find(query)
+    //     .toArray(function (err, result) {
+    //       if (err) throw err;
+    //       res.send(result);
+    //     });
+    // });
+    // //get product by  productInfo : Advertised
+    // app.get("/aProduct/:productInfo", async (req, res) => {
+    //   const productInfo = req.params.productInfo;
+    //   const query = { productInfo };
+    //   const Product = await userCollection
+    //     .find(query)
+    //     .toArray(function (err, result) {
+    //       if (err) throw err;
+    //       res.send(result);
+    //     });
+    // });
+    // //This is ProductBooking section
+    // //booking data save to mongoDB
+    // app.post("/ProductBooking", async (req, res) => {
+    //   const booking = req.body;
+    //   const result = await bookingsCollection.insertOne(booking);
+    //   res.send(result);
+    // });
 
-//       const paymentIntent = await stripe.paymentIntents.create({
-//         currency: "usd",
-//         amount: amount,
-//         payment_method_types: ["card"],
-//       });
+    // //booking data get to mongoDB
+    // app.get("/ProductBooking", verifyJwt, async (req, res) => {
+    //   const email = req.query.email;
+    //   const decodedEmail = req.decoded.email;
+    //   if (email !== decodedEmail) {
+    //     return res.status(403).send({ message: "Forbidden Assess" });
+    //   }
+    //   const query = { email: email };
+    //   const booking = await bookingsCollection.find(query).toArray();
+    //   res.send(booking);
+    // });
 
-//       res.send({
-//         clientSecret: paymentIntent.client_secret,
-//       });
-//     });
+    // //get booking data to id
+    // app.get("/bookingData/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: ObjectId(id) };
+    //   const bookingData = await bookingsCollection.findOne(query);
+    //   res.send(bookingData);
+    // });
 
-//     app.post("/payments", async (req, res) => {
-//       const payment = req.body;
-//       const payResult = await paymentsCollection.insertOne(payment);
-//       const id = payment.bookingId;
-//       const filter = { _id: ObjectId(id) };
-//       //filter korte hobe productId:_id diye.
-//       const updatedDoc = {
-//         $set: {
-//           paid: true,
-//           transactionId: payment.transactionId,
-//         },
-//       };
-//       const updatedResult = await bookingsCollection.updateOne(
-//         filter,
-//         updatedDoc
-//       );
-//       const ids = payment.bookingId;
-//       const filters = { _id: ObjectId(ids) };
-//       const updatedDocs = {
-//         $set: {
-//           paid: true,
-//           transactionId: payment.transactionId,
-//         },
-//       };
-//       const updatedAllProduct = await userCollection.updateOne(
-//         filters,
-//         updatedDocs
-//       );
-//       res.send(payResult);
-//     });
+    // //Payment booking product
 
-//     //This is user section start
-//     //get all user on verify
-//     app.get("/users", async (req, res) => {
-//       const query = {};
-//       const result = await CreateUserCollection.find(query).toArray();
-//       res.send(result);
-//     });
-//     //create user and save to mongoDB
-//     app.post("/users", async (req, res) => {
-//       const user = req.body;
-//       const result = await CreateUserCollection.insertOne(user);
-//       res.send(result);
-//     });
-//     //get data by user role
-//     app.get("/users/:role", async (req, res) => {
-//       const role = req.params.role;
-//       const query = { role };
-//       const Product = await CreateUserCollection.find(query).toArray();
-//       res.send(Product);
-//     });
+    // app.post("/create-payment-intent", verifyJwt, async (req, res) => {
+    //   const booking = req.body;
+    //   const price = booking.resale_price;
+    //   const amount = price * 100;
 
-//     //only seller  route create by hook verifyJwt,
-//     app.get("/users/seller/:email", async (req, res) => {
-//       const email = req.params.email;
-//       const query = { email };
-//       const user = await CreateUserCollection.findOne(query);
-//       res.send({
-//         isSeller: user?.role === "Seller",
-//         isVerify: user?.userInfo === "verified",
-//       });
-//     });
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     currency: "usd",
+    //     amount: amount,
+    //     payment_method_types: ["card"],
+    //   });
 
-//     //only admin route create by hook verifyJwt,
-//     app.get("/users/admin/:email", async (req, res) => {
-//       const email = req.params.email;
-//       const query = { email };
-//       const user = await CreateUserCollection.findOne(query);
-//       res.send({ iaAdmin: user?.role === "admin" });
-//     });
+    //   res.send({
+    //     clientSecret: paymentIntent.client_secret,
+    //   });
+    // });
 
-//     //admin delete data from seller and buyer
-//     app.delete("/users/:id", verifyJwt, async (req, res) => {
-//       const id = req.params.id;
-//       const query = { _id: ObjectId(id) };
-//       const result = await CreateUserCollection.deleteOne(query);
-//       res.send(result);
-//     });
+    // app.post("/payments", async (req, res) => {
+    //   const payment = req.body;
+    //   const payResult = await paymentsCollection.insertOne(payment);
+    //   const id = payment.bookingId;
+    //   const filter = { _id: ObjectId(id) };
+    //   //filter korte hobe productId:_id diye.
+    //   const updatedDoc = {
+    //     $set: {
+    //       paid: true,
+    //       transactionId: payment.transactionId,
+    //     },
+    //   };
+    //   const updatedResult = await bookingsCollection.updateOne(
+    //     filter,
+    //     updatedDoc
+    //   );
+    //   const ids = payment.bookingId;
+    //   const filters = { _id: ObjectId(ids) };
+    //   const updatedDocs = {
+    //     $set: {
+    //       paid: true,
+    //       transactionId: payment.transactionId,
+    //     },
+    //   };
+    //   const updatedAllProduct = await userCollection.updateOne(
+    //     filters,
+    //     updatedDocs
+    //   );
+    //   res.send(payResult);
+    // });
 
-//     //user and user product  Verify update by admin
-//     app.put("/users/admin/:id", verifyJwt, async (req, res) => {
-//       const decodedEmail = req.decoded.email;
-//       const query = { email: decodedEmail };
-//       const user = await CreateUserCollection.findOne(query);
-//       if (user?.role !== "admin") {
-//         return res.status(403).send({ message: "Forbidden Assess" });
-//       }
-//       const id = req.params.id;
-//       const filter = { _id: ObjectId(id) };
-//       const options = { upsert: true };
-//       const updatedUser = {
-//         $set: {
-//           userInfo: "verified",
-//         },
-//       };
+    // //This is user section start
+    // //get all user on verify
+    // app.get("/users", async (req, res) => {
+    //   const query = {};
+    //   const result = await CreateUserCollection.find(query).toArray();
+    //   res.send(result);
+    // });
+    // //create user and save to mongoDB
+    // app.post("/users", async (req, res) => {
+    //   const user = req.body;
+    //   const result = await CreateUserCollection.insertOne(user);
+    //   res.send(result);
+    // });
+    // //get data by user role
+    // app.get("/users/:role", async (req, res) => {
+    //   const role = req.params.role;
+    //   const query = { role };
+    //   const Product = await CreateUserCollection.find(query).toArray();
+    //   res.send(Product);
+    // });
 
-//       const result2 = await CreateUserCollection.findOne(
-//         filter,
-//         async function (err, userResult) {
-//           if (err) throw err;
-//           console.log("userResult", userResult);
-//           const email = userResult.email;
-//           const emailFilter = { email: email };
-//           console.log("emailFilter", emailFilter);
-//           const updatedProduct = {
-//             $set: {
-//               userInfo: "verified",
-//             },
-//           };
-//           const userProduct = await userCollection.updateMany(
-//             emailFilter,
-//             updatedProduct,
-//             options
-//           );
-//         }
-//       );
+    // //only seller  route create by hook verifyJwt,
+    // app.get("/users/seller/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email };
+    //   const user = await CreateUserCollection.findOne(query);
+    //   res.send({
+    //     isSeller: user?.role === "Seller",
+    //     isVerify: user?.userInfo === "verified",
+    //   });
+    // });
 
-//       const result = await CreateUserCollection.updateOne(
-//         filter,
-//         updatedUser,
-//         options
-//       );
+    // //only admin route create by hook verifyJwt,
+    // app.get("/users/admin/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email };
+    //   const user = await CreateUserCollection.findOne(query);
+    //   res.send({ iaAdmin: user?.role === "admin" });
+    // });
 
-//       res.send(result);
-//     });
-//   } finally {
-//   }
-// }
-// run().catch((err) => console.log(err));
+    // //admin delete data from seller and buyer
+    // app.delete("/users/:id", verifyJwt, async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: ObjectId(id) };
+    //   const result = await CreateUserCollection.deleteOne(query);
+    //   res.send(result);
+    // });
+
+    // //user and user product  Verify update by admin
+    // app.put("/users/admin/:id", verifyJwt, async (req, res) => {
+    //   const decodedEmail = req.decoded.email;
+    //   const query = { email: decodedEmail };
+    //   const user = await CreateUserCollection.findOne(query);
+    //   if (user?.role !== "admin") {
+    //     return res.status(403).send({ message: "Forbidden Assess" });
+    //   }
+    //   const id = req.params.id;
+    //   const filter = { _id: ObjectId(id) };
+    //   const options = { upsert: true };
+    //   const updatedUser = {
+    //     $set: {
+    //       userInfo: "verified",
+    //     },
+    //   };
+
+    //   const result2 = await CreateUserCollection.findOne(
+    //     filter,
+    //     async function (err, userResult) {
+    //       if (err) throw err;
+    //       console.log("userResult", userResult);
+    //       const email = userResult.email;
+    //       const emailFilter = { email: email };
+    //       console.log("emailFilter", emailFilter);
+    //       const updatedProduct = {
+    //         $set: {
+    //           userInfo: "verified",
+    //         },
+    //       };
+    //       const userProduct = await userCollection.updateMany(
+    //         emailFilter,
+    //         updatedProduct,
+    //         options
+    //       );
+    //     }
+    //   );
+
+    //   const result = await CreateUserCollection.updateOne(
+    //     filter,
+    //     updatedUser,
+    //     options
+    //   );
+
+    //   res.send(result);
+    // });
+  } finally {
+  }
+}
+run().catch((err) => console.log(err));
 
 app.get("/", (req, res) => {
   res.send("Coming Soon....PET SHOP");
