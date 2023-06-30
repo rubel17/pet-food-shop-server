@@ -15,9 +15,6 @@ app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.nzbu8kl.mongodb.net/?retryWrites=true&w=majority`;
 
-// old version mongoDb connection
-// const uri = `mongodb://${process.env.DB_USER}:${process.env.DB_PASSWORD}@ac-leabwa6-shard-00-00.nzbu8kl.mongodb.net:27017,ac-leabwa6-shard-00-01.nzbu8kl.mongodb.net:27017,ac-leabwa6-shard-00-02.nzbu8kl.mongodb.net:27017/?ssl=true&replicaSet=atlas-8a48sm-shard-0&authSource=admin&retryWrites=true&w=majority`;
-
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -46,10 +43,10 @@ async function run() {
     const userCollectionAllProduct = client
       .db("Pet-Shop")
       .collection("allProduct");
+    const allWishList = client.db("Pet-Shop").collection("wishList");
 
-    // const bookingsCollection = client.db("Phone").collection("bookings");
-    // const CreateUserCollection = client.db("Phone").collection("users");
-    // const paymentsCollection = client.db("Phone").collection("payments");
+    // const CreateUserCollection = client.db("Pet-Shop").collection("users");
+    // const paymentsCollection = client.db("Pet-Shop").collection("payments");
 
     //jwt token create
     // app.get("/jwt", async (req, res) => {
@@ -65,8 +62,8 @@ async function run() {
 
     //   res.status(403).send({ token: " " });
     // });
-    //This is AllProduct section
-    //get all Product
+    // This is AllProduct section
+    // get all Product
 
     // app.get("/alProduct/:email", async (req, res) => {
     //   const email = req.params.email;
@@ -75,35 +72,53 @@ async function run() {
     //   res.send({ iaAdmin: user?.role === "admin" });
     // });
 
-    // //get product by Categories
+    // get product By category
     app.get("/allProduct/:category", async (req, res) => {
-      console.log("/allProduct/:category");
       const category = req.params.category;
-      console.log("/allProduct/:category : "+category);
-      const id = req.params.id;
-      console.log("/allProduct/:id : "+id);
       const query = { category };
       const Product = await userCollectionAllProduct.find(query).toArray();
       res.send(Product);
     });
 
-    // //get booking data to id
-    // app.get("/bookingData/:id", async (req, res) => {
-    // const id = req.params.id;
-    // const query = { _id: ObjectId(id) };
-    //   const bookingData = await bookingsCollection.findOne(query);
-    //   res.send(bookingData);
-    // });
-
+    //get product by Id
     app.get("/productDetails/:id", async (req, res) => {
-      console.log("/allProduct/:id");
       const id = req.params.id;
-      console.log("/allProduct/:id : "+id);
-      const query = { _id:new ObjectId(id) };
-      console.log(query);
+      const query = { _id: new ObjectId(id) };
       const detail = await userCollectionAllProduct.findOne(query);
-      console.log(detail);
       res.send(detail);
+    });
+
+    //This is ProductBooking section
+    //booking data save to mongoDB and update allProduct field
+    app.post("/addToWishList", async (req, res) => {
+      const addToWishList = req.body;
+      const result = await allWishList.insertOne(addToWishList);
+      const id = addToWishList.productId;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          addProduct: "Done",
+        },
+      };
+      const updatedResult = await userCollectionAllProduct.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(result);
+    });
+
+    //get WishList data by email verifyJwt,
+    app.get("/myWishList/:email", async (req, res) => {
+      // const email = req.query.email;
+      const email = req.params.email;
+      console.log(email);
+      // const decodedEmail = req.decoded.email;
+      // if (email !== decodedEmail) {
+      //   return res.status(403).send({ message: "Forbidden Assess" });
+      // }
+      const query = { email };
+      const WishList = await allWishList.find(query).toArray();
+      res.send(WishList);
     });
 
     //post data into AllProduct by add a Product
