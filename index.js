@@ -93,25 +93,45 @@ async function run() {
     app.post("/addToWishList", async (req, res) => {
       const addToWishList = req.body;
       const result = await allWishList.insertOne(addToWishList);
-      const id = addToWishList.productId;
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          addProduct: "Done",
-        },
-      };
-      const updatedResult = await userCollectionAllProduct.updateOne(
-        filter,
-        updatedDoc
-      );
+      // const id = addToWishList.productId;
+      // const filter = { _id: new ObjectId(id) };
+      // const updatedDoc = {
+      //   $set: {
+      //     addToWishList: "Done",
+      //     // addToWishList: true,
+      //   },
+      // };
+      // const updatedResult = await userCollectionAllProduct.updateOne(
+      //   filter,
+      //   updatedDoc
+      // );
+      res.send(result);
+    });
+    //delete To WishList and update allProduct
+    app.delete("/deleteToWishList/:productId", async (req, res) => {
+      const id = req.params.productId;
+      console.log("id", id);
+      const query = { productId: id };
+      console.log("query", query);
+      const result = await allWishList.deleteOne(query);
+      // const filter = { _id: new ObjectId(id) };
+      // const updatedDoc = {
+      //   $unset: {
+      //     addToWishList: "Done",
+      //     // addToWishList: true,
+      //   },
+      // };
+      // const updatedResult = await userCollectionAllProduct.updateOne(
+      //   filter,
+      //   updatedDoc
+      // );
       res.send(result);
     });
 
     //get WishList data by email verifyJwt,
     app.get("/myWishList/:email", async (req, res) => {
-      // const email = req.query.email;
       const email = req.params.email;
-      console.log(email);
+      // const email = req.query.email;
       // const decodedEmail = req.decoded.email;
       // if (email !== decodedEmail) {
       //   return res.status(403).send({ message: "Forbidden Assess" });
